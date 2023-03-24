@@ -1,0 +1,19 @@
+
+server:
+  port: 8008
+  servlet:
+    context-path: /${spring.application.name}
+
+spring:
+  application:
+    name: ss-dailybot
+  webflux:
+    base-path: ${spring.application.name}
+
+dailybot:
+  bot-token: ${TG_BOT_TOKEN} # Токен телеграм бота
+  chat-id: ${TG_GROUP_CHAT_ID} # Идентификатор чата рассылки
+  debug-chat-id: ${TG_DEBUG_GROUP_CHAT_ID} # Идентификатор чата для информирования об исключительных ситуациях
+  send-messages: true  # Признак отправки сообщения
+  check-execution-time: true # Признак проверки точного времени отправки сообщения
+  zoom-link: ${DAILY_ZOOM_LINK} # Ссылка на zoom
