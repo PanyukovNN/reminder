@@ -56,12 +56,14 @@ task removeDockerContainer {
     group "build"
     doLast {
         exec {
+            ignoreExitValue true
             try {
                 commandLine 'docker', 'stop', 'reminder'
             } catch (Exception ignore) {
             }
         }
         exec {
+            ignoreExitValue true
             try {
                 commandLine 'docker', 'rm', '-f', 'reminder'
             } catch (Exception ignore) {
@@ -76,7 +78,7 @@ task removeDockerContainer {
 task deployToDocker {
     group "build"
     dependsOn removeDockerContainer
-    removeDockerContainer.finalizedBy buildDockerImage // выполняет запуск сборки image после удаления контейнера
+    dependsOn buildDockerImage
     doLast {
         exec {
             workingDir '.'
