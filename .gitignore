@@ -30,3 +30,4 @@ target/
 
 **application-localdev.properties
 /release/configmap.yml
+release/config.properties

@@ -8,19 +8,10 @@ plugins {
 group = "ru.gazprombank"
 version = "1.0.0"
 
-repositories({ RepositoryHandler r ->
-    r.maven({ MavenArtifactRepository m ->
-        m.name = "maven-public"
-        m.url = nexusUrl
-        m.allowInsecureProtocol = url.scheme == "http"
-        if (project.hasProperty("nexusUser") && project.hasProperty("nexusPassword")) {
-            m.credentials({ PasswordCredentials c ->
-                c.username = nexusUser
-                c.password = nexusPassword
-            })
-        }
-    })
-})
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
 
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter-webflux"
@@ -31,39 +22,6 @@ dependencies {
     annotationProcessor     "org.projectlombok:lombok"
     testCompileOnly         "org.projectlombok:lombok"
     testAnnotationProcessor "org.projectlombok:lombok"
-}
-
-/**
- * Таск для создания docker образа
- */
-task buildDockerImage {
-    group "build"
-    dependsOn build
-    doLast {
-        exec {
-            workingDir '.'
-            commandLine 'docker', 'build', '.', '-t', 'ss-dailybot:1.0'
-        }
-    }
-}
-
-/**
- * Таск для полного редеплоя контейнера в k8s
- */
-task deployToKubernetes {
-    group "build"
-    dependsOn buildDockerImage
-    doLast {
-        exec {
-            ignoreExitValue true
-            workingDir '.'
-            commandLine 'kubectl', 'delete', 'po', 'ss-dailybot', '-n', 'daybot'
-        }
-        exec {
-            workingDir '.'
-            commandLine 'kubectl', 'apply', '-f', './release'
-        }
-    }
 }
 
 sonarqube {
@@ -78,4 +36,60 @@ bootJar {
 
 tasks.withType(Test) {
     systemProperty "file.encoding", "UTF-8"
+}
+
+/**
+ * Таск для создания docker образа
+ */
+task buildDockerImage {
+    group "build"
+    dependsOn build
+    doLast {
+        exec {
+            workingDir '.'
+            commandLine 'docker', 'build', '.', '-t', 'reminder:1.0'
+        }
+    }
+}
+
+/**
+ * Таск разворачивания контейнера для работы на сервере
+ */
+task deployToDocker {
+    group "build"
+    dependsOn buildDockerImage
+    doLast {
+        exec {
+            ignoreExitValue true
+            commandLine 'docker', 'stop', 'reminder'
+        }
+        exec {
+            try {
+                commandLine 'docker', 'rm', '-f', 'reminder'
+            } catch (Exception ignore) {
+            }
+        }
+        exec {
+            workingDir '.'
+            commandLine 'docker', 'run', '-d', '--env-file', './release/config.properties', '--name', 'reminder', '-p', '8008:8008', 'reminder:1.0'
+        }
+    }
+}
+
+/**
+ * Таск для редеплоя контейнера в локальный k8s
+ */
+task deployToKubernetes {
+    group "build"
+    dependsOn buildDockerImage
+    doLast {
+        exec {
+            ignoreExitValue true
+            commandLine 'kubectl', 'delete', 'po', 'ss-dailybot', '-n', 'daybot'
+        }
+        exec {
+            workingDir '.'
+            commandLine 'kubectl', 'apply', '-f', './release'
+        }
+    }
 }
