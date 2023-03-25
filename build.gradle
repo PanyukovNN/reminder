@@ -52,16 +52,14 @@ task buildDockerImage {
     }
 }
 
-/**
- * Таск разворачивания контейнера для работы на сервере
- */
-task deployToDocker {
+task removeDockerContainer {
     group "build"
-    dependsOn buildDockerImage
     doLast {
         exec {
-            ignoreExitValue true
-            commandLine 'docker', 'stop', 'reminder'
+            try {
+                commandLine 'docker', 'stop', 'reminder'
+            } catch (Exception ignore) {
+            }
         }
         exec {
             try {
@@ -69,6 +67,17 @@ task deployToDocker {
             } catch (Exception ignore) {
             }
         }
+    }
+}
+
+/**
+ * Таск разворачивания контейнера для работы на сервере
+ */
+task deployToDocker {
+    group "build"
+    dependsOn removeDockerContainer
+    removeDockerContainer.finalizedBy buildDockerImage // выполняет запуск сборки image после удаления контейнера
+    doLast {
         exec {
             workingDir '.'
             commandLine 'docker', 'run', '-d', '--env-file', './release/config.properties', '--name', 'reminder', '-p', '8008:8008', 'reminder:1.0'
@@ -85,7 +94,7 @@ task deployToKubernetes {
     doLast {
         exec {
             ignoreExitValue true
-            commandLine 'kubectl', 'delete', 'po', 'ss-dailybot', '-n', 'daybot'
+            commandLine 'kubectl', 'delete', 'po', 'ss-dailybot', '-n', 'daybot' // TODO
         }
         exec {
             workingDir '.'
