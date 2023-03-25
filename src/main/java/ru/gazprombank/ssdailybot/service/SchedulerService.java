@@ -18,6 +18,6 @@ public class SchedulerService {
     public void schedule() {
         log.info("Выполняется запланированный запуск");
 
-        dayBotManager.processSending(true, true);
+        dayBotManager.processSending(true, false);
     }
 }
