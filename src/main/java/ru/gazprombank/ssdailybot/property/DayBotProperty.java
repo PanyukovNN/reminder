@@ -2,16 +2,19 @@ package ru.gazprombank.ssdailybot.property;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotEmpty;
 
 @Slf4j
 @Getter
 @Setter
+@ToString
 @Component
 @Validated
 @ConfigurationProperties("dailybot")
@@ -44,4 +47,11 @@ public class DayBotProperty {
      * Ссылка на zoom.
      */
     private String zoomLink;
+
+    private String cron;
+
+    @PostConstruct
+    public void pc() {
+        log.info(this.toString());
+    }
 }
