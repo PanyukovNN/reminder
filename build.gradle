@@ -43,7 +43,9 @@ tasks.withType(Test) {
  */
 task buildDockerImage {
     group "build"
+    dependsOn clean
     dependsOn build
+    tasks.findByName('build').mustRunAfter 'clean'
     doLast {
         exec {
             workingDir '.'
