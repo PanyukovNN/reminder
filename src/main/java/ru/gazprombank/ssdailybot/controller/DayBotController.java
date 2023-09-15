@@ -16,11 +16,11 @@ public class DayBotController {
 
     @GetMapping("/send-message")
     public void sendMessage(@RequestParam(value = "force", required = false) boolean isForce) {
-        dayBotManager.processSending(isForce, false);
+        dayBotManager.processSendingDailyMessage(isForce, false);
     }
 
     @GetMapping("/send-message-debug")
     public void sendMessageDebug() {
-        dayBotManager.processSending(true, true);
+        dayBotManager.processSendingDailyMessage(true, true);
     }
 }

@@ -32,7 +32,7 @@ public class ExecutionTimeChecker {
     /**
      * Проверяет, что текущее время подпадает под допустимый период.
      */
-    public void check() {
+    public void dailyMessageCheck() {
         if (!dayBotProperty.isCheckExecutionTime()) {
             log.info("Проверка времени запуска бота отключена");
 

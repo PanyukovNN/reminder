@@ -3,7 +3,6 @@ package ru.gazprombank.ssdailybot.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.gazprombank.ssdailybot.property.DayBotProperty;
@@ -21,12 +20,13 @@ public class DayBotManager {
 
     private final MessageSender messageSender;
     private final MessagePicker messagePicker;
-    private final ExecutionTimeChecker timeChecker;
     private final DayBotProperty dayBotProperty;
+    private final ExecutionTimeChecker timeChecker;
+    private final FortuneWheelService fortuneWheelService;
 
-    public void processSending(boolean isForce, boolean isDebug) {
+    public void processSendingDailyMessage(boolean isForce, boolean isDebug) {
         if (!isForce) {
-            timeChecker.check();
+            timeChecker.dailyMessageCheck();
         }
 
         String chatId = isDebug
@@ -53,9 +53,21 @@ public class DayBotManager {
                 .subscribe();
     }
 
-    @Scheduled(cron = "0 */10 8-10 * * MON-FRI")
-    public void scheduled() {
-        log.info("Scheduler iteration");
+    public void processSendingFortuneWheel() {
+        String chatId = dayBotProperty.getChatId();
+
+        messageSender.sendMessage(chatId, fortuneWheelService.createReadyMsg())
+                .doOnSuccess(item -> log.info("Плановая отправка fw сообщения выполнена успешно."))
+                .onErrorResume(e -> {
+                    String errMsg = "Возникла ошибка при отправке fw сообщения: " + e.getMessage();
+
+                    log.error(errMsg, e);
+
+                    return messageSender.sendMessage(dayBotProperty.getDebugChatId(), errMsg)
+                            .doOnError(ex -> log.info("Произошла ошибка при отрпавке debug сообщения: {}", ex.getMessage(), ex))
+                            .doOnSuccess(item -> log.info("Отправка информации об исключительной ситуации выполнена успешно."));
+                })
+                .subscribe();
     }
 
     private String formatMessage() {

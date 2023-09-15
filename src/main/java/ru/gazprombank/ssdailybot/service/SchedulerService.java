@@ -14,10 +14,17 @@ public class SchedulerService {
 
     private final DayBotManager dayBotManager;
 
-    @Scheduled(cron = "${dailybot.cron}")
-    public void schedule() {
-        log.info("Выполняется запланированный запуск");
+    @Scheduled(cron = "${dailybot.daily-cron}")
+    public void daily() {
+        log.info("Выполняется запланированный запуск daily сообщения");
 
-        dayBotManager.processSending(true, false);
+        dayBotManager.processSendingDailyMessage(true, false);
+    }
+
+    @Scheduled(cron = "${dailybot.fw-cron}")
+    public void fortuneWheel() {
+        log.info("Выполняется запланированный запуск fortune wheel сообщения");
+
+        dayBotManager.processSendingFortuneWheel();
     }
 }

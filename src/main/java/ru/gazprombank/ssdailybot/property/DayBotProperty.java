@@ -1,5 +1,7 @@
 package ru.gazprombank.ssdailybot.property;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -7,9 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
-
-import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotEmpty;
 
 @Slf4j
 @Getter
@@ -23,8 +22,13 @@ public class DayBotProperty {
     /**
      * Токен телеграм бота.
      */
-    @NotEmpty(message = "Не задан токен телеграм бота")
+    @NotEmpty(message = "Не задан токен бота")
     private String botToken;
+    /**
+     * Имя бота.
+     */
+    @NotEmpty(message = "Не задано имя бота")
+    private String botName;
     /**
      * Идентификатор чата рассылки.
      */
