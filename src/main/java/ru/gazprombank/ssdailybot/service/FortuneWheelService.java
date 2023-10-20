@@ -20,9 +20,6 @@ public class FortuneWheelService {
             .build();
 
     private final List<String> participants = List.of(
-            "Николай П. @nick_pn",
-            "Георгий Ш. @flyyet",
-            "Константин Ш. @kshurukhin",
             "Евгений З. @ZiGiDi",
             "Алексей Б. @mr_fduch",
             "Олег Р. @olegidse",
@@ -31,7 +28,8 @@ public class FortuneWheelService {
             "Андрей Ш. @ap_shirokov",
             "Егор Г. @egorkawork",
             "Александр П. @sanman2005",
-            "Александр Г. @xgubenko"
+            "Александр Г. @xgubenko",
+            "Ольга Л. @wiseswan"
     );
 
     private final List<String> congratulationMessages = List.of(
