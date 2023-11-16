@@ -29,7 +29,8 @@ public class FortuneWheelService {
             "Егор Г. @egorkawork",
             "Александр П. @sanman2005",
             "Александр Г. @xgubenko",
-            "Ольга Л. @wiseswan"
+            "Марат А. @Marat_Azizov",
+            "Михаил Г. @Oberonl"
     );
 
     private final List<String> congratulationMessages = List.of(
