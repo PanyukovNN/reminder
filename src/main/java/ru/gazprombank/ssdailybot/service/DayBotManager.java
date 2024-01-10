@@ -21,7 +21,6 @@ public class DayBotManager {
             <a href='%s'>Команда А</a>     <a href='%s'>Лимитчики</a>     <a href='%s'>ITPandas</a>     <a href='%s'>Общий дейли</a>
             """;
 
-
     private final MessageSender messageSender;
     private final MessagePicker messagePicker;
     private final DayBotProperty dayBotProperty;
