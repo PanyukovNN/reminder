@@ -1,0 +1,10 @@
+version: '3.3'
+
+services:
+  reminder:
+    build: .
+    container_name: reminder
+    ports:
+      - "8008:8008"
+    env_file:
+      - deploy/config.env

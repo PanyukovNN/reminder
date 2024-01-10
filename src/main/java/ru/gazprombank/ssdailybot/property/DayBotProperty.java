@@ -47,10 +47,11 @@ public class DayBotProperty {
      * Признак проверки точного времени отправки сообщения.
      */
     private boolean checkExecutionTime;
-    /**
-     * Ссылка на zoom.
-     */
-    private String zoomLink;
+
+    private String dailyLinkCommon;
+    private String dailyLink1;
+    private String dailyLink2;
+    private String dailyLink3;
 
     private String cron;
 

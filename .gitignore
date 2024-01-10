@@ -29,5 +29,6 @@ target/
 /.nb-gradle/
 
 **application-localdev.properties
-/release/configmap.yml
-release/config.properties
+deploy/configmap.yml
+deploy/config.properties
+/deploy/config.env

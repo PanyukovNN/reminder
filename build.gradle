@@ -68,41 +68,6 @@ task buildDockerImage {
     }
 }
 
-task removeDockerContainer {
-    group "build"
-    doLast {
-        exec {
-            ignoreExitValue true
-            try {
-                commandLine 'docker', 'stop', 'reminder'
-            } catch (Exception ignore) {
-            }
-        }
-        exec {
-            ignoreExitValue true
-            try {
-                commandLine 'docker', 'rm', '-f', 'reminder'
-            } catch (Exception ignore) {
-            }
-        }
-    }
-}
-
-/**
- * Таск разворачивания контейнера для работы на сервере
- */
-task dockerizeProd {
-    group "build"
-    dependsOn removeDockerContainer
-    dependsOn buildDockerImage
-    doLast {
-        exec {
-            workingDir '.'
-            commandLine 'docker', 'run', '-d', '--env-file', './release/config.properties', '--name', 'reminder', '-p', '8008:8008', 'reminder:1.0'
-        }
-    }
-}
-
 /**
  * Таск для редеплоя контейнера в локальный k8s
  */

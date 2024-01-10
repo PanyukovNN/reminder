@@ -6,15 +6,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import reactor.core.publisher.Sinks;
-import ru.gazprombank.ssdailybot.commands.StartCommand;
-import ru.gazprombank.ssdailybot.commands.WheelCommand;
 import ru.gazprombank.ssdailybot.property.DayBotProperty;
-import ru.gazprombank.ssdailybot.service.FortuneWheelService;
+
+import java.util.List;
 
 /**
  * Общая конфигурация приложения.
@@ -38,12 +38,11 @@ public class DBotConfig {
     @Bean
     public BotApi botApi(DayBotProperty dayBotProperty,
                          TelegramBotsApi telegramBotsApi,
-                         FortuneWheelService fortuneWheelService) throws TelegramApiException {
+                         List<BotCommand> commands) throws TelegramApiException {
         BotApi botApi = new BotApi(dayBotProperty.getBotName(), dayBotProperty.getBotToken());
 
         telegramBotsApi.registerBot(botApi);
-        botApi.register(new StartCommand());
-        botApi.register(new WheelCommand(fortuneWheelService));
+        commands.forEach(botApi::register);
 
         return botApi;
     }
