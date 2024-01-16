@@ -16,7 +16,7 @@ spring:
         username: ${SBA_SERVER_USER}
         password: ${SBA_SERVER_PASSWORD}
         instance:
-          service-url: http://host.docker.internal:${server.port}
+          service-url: http://host.docker.internal:${server.port}/${spring.application.name}
 
 dailybot:
   bot-token: ${TG_BOT_TOKEN} # Токен бота
