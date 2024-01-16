@@ -6,6 +6,8 @@ services:
     container_name: reminder
     ports:
       - "8008:8008"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - deploy/config.env
       - ~/common-config/config.env
