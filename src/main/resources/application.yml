@@ -6,7 +6,7 @@ server:
 
 spring:
   application:
-    name: ss-dailybot
+    name: reminder
   webflux:
     base-path: ${spring.application.name}
   boot:
