@@ -8,3 +8,4 @@ services:
       - "8008:8008"
     env_file:
       - deploy/config.env
+      - ~/common-config/config.env
