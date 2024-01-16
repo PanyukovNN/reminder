@@ -27,6 +27,8 @@ dependencies {
 
     implementation 'io.netty:netty-all'
 
+    implementation 'de.codecentric:spring-boot-admin-starter-client:3.2.1'
+
     implementation 'org.telegram:telegrambots:6.5.0';
     implementation 'org.telegram:telegrambots-meta:6.5.0';
     implementation 'org.telegram:telegrambotsextensions:6.5.0';
@@ -50,38 +52,4 @@ bootJar {
 
 tasks.withType(Test) {
     systemProperty "file.encoding", "UTF-8"
-}
-
-/**
- * Таск для создания docker образа
- */
-task buildDockerImage {
-    group "build"
-    dependsOn clean
-    dependsOn build
-    tasks.findByName('build').mustRunAfter 'clean'
-    doLast {
-        exec {
-            workingDir '.'
-            commandLine 'docker', 'build', '.', '-t', 'reminder:1.0'
-        }
-    }
-}
-
-/**
- * Таск для редеплоя контейнера в локальный k8s
- */
-task deployToKubernetes {
-    group "build"
-    dependsOn buildDockerImage
-    doLast {
-        exec {
-            ignoreExitValue true
-            commandLine 'kubectl', 'delete', 'po', 'ss-dailybot', '-n', 'daybot' // TODO
-        }
-        exec {
-            workingDir '.'
-            commandLine 'kubectl', 'apply', '-f', './release'
-        }
-    }
 }

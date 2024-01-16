@@ -9,6 +9,14 @@ spring:
     name: ss-dailybot
   webflux:
     base-path: ${spring.application.name}
+  boot:
+    admin:
+      client:
+        url: ${SBA_SERVER_URL}
+        username: ${SBA_SERVER_USER}
+        password: ${SBA_SERVER_PASSWORD}
+        instance:
+          service-url: http://host.docker.internal:${server.port}
 
 dailybot:
   bot-token: ${TG_BOT_TOKEN} # Токен бота
@@ -23,3 +31,9 @@ dailybot:
   daily-link-3: ${DAILY_LINK_3} # Ссылка 3 команды
   daily-cron: ${DAILY_CRON}
   fw-cron: ${FW_CRON}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

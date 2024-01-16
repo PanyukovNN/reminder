@@ -1,1 +1,1 @@
-ssh mbots "cd reminder/deploy; sh deploy.sh"
+ssh abots "cd reminder/deploy; sh deploy.sh"
