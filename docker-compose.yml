@@ -5,7 +5,8 @@ services:
     build: .
     container_name: reminder
     ports:
-      - "8008:8008"
+      - "172.17.0.1:8008:8008" # host.docker.internal
+      - "127.0.0.1:8008:8008"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
