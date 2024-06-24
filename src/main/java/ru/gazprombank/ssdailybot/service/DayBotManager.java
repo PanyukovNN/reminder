@@ -17,8 +17,7 @@ import java.util.List;
 public class DayBotManager {
 
     private static final String DAILY_LINK_LINE = """
-            Подключаемся по ссылкам:
-            <a href='%s'>Команда А</a>     <a href='%s'>Лимитчики</a>     <a href='%s'>ITPandas</a>     <a href='%s'>Общий дейли</a>
+            Подключаемся <a href='%s'>по ссылке</a>
             """;
 
     private final MessageSender messageSender;
@@ -78,12 +77,7 @@ public class DayBotManager {
 
         messageLines.add(messagePicker.pickDailyMessage());
         messageLines.add(Strings.EMPTY);
-        messageLines.add(String.format(DAILY_LINK_LINE,
-                dayBotProperty.getDailyLink1(),
-                dayBotProperty.getDailyLink2(),
-                dayBotProperty.getDailyLink3(),
-                dayBotProperty.getDailyLinkCommon()
-                ));
+        messageLines.add(String.format(DAILY_LINK_LINE, dayBotProperty.getDailyLinkCommon()));
 
         return String.join("\n", messageLines);
     }

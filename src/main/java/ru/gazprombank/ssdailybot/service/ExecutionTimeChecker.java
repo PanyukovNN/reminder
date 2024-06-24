@@ -3,6 +3,7 @@ package ru.gazprombank.ssdailybot.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.gazprombank.ssdailybot.exception.TimeCheckerException;
 import ru.gazprombank.ssdailybot.property.DayBotProperty;
 
@@ -13,6 +14,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Сервис проверки времени запуска.
@@ -27,6 +29,7 @@ public class ExecutionTimeChecker {
     private static final List<DayOfWeek> WEEK_DAY_BLACK_LIST = List.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
     private static final DateTimeFormatter FRONT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
+    private final Set<LocalDate> holidays;
     private final DayBotProperty dayBotProperty;
 
     /**
@@ -39,18 +42,23 @@ public class ExecutionTimeChecker {
             return;
         }
 
-        checkDayOfWeek();
+        checkHoliday();
 
         checkTime();
 
         log.info("Проверка времени запуска выполнена успешно");
     }
 
-    private void checkDayOfWeek() {
-        if (WEEK_DAY_BLACK_LIST.contains(LocalDate.now().getDayOfWeek())) {
+    private void checkHoliday() {
+        // Если не удалось распознать производственный календарь из ресурсов, то проверяем будний ли сегодня день
+        if (CollectionUtils.isEmpty(holidays) && WEEK_DAY_BLACK_LIST.contains(LocalDate.now().getDayOfWeek())) {
             String errMsg = String.format("Нерабочий день, не допускается запуск по следующим дням: %s", WEEK_DAY_BLACK_LIST);
 
             throw new TimeCheckerException(errMsg);
+        }
+
+        if (holidays.contains(LocalDate.now())) {
+            throw new TimeCheckerException("Выходной день по производственному календарю, запуск отменен");
         }
     }
 

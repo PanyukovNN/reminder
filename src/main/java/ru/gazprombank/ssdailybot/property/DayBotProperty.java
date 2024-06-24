@@ -49,9 +49,6 @@ public class DayBotProperty {
     private boolean checkExecutionTime;
 
     private String dailyLinkCommon;
-    private String dailyLink1;
-    private String dailyLink2;
-    private String dailyLink3;
 
     private String cron;
 

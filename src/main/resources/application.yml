@@ -26,9 +26,6 @@ dailybot:
   send-messages: true  # Признак отправки сообщения
   check-execution-time: true # Признак проверки точного времени отправки сообщения
   daily-link-common: ${DAILY_LINK_COMMON} # Ссылка на общий дейли
-  daily-link-1: ${DAILY_LINK_1} # Ссылка 1 команды
-  daily-link-2: ${DAILY_LINK_2} # Ссылка 2 команды
-  daily-link-3: ${DAILY_LINK_3} # Ссылка 3 команды
   daily-cron: ${DAILY_CRON}
   fw-cron: ${FW_CRON}
 
