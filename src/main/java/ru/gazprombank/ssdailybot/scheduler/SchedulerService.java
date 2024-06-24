@@ -22,7 +22,7 @@ public class SchedulerService {
         dayBotManager.processSendingDailyMessage(true, false);
     }
 
-    @Scheduled(cron = "${dailybot.fw-cron}")
+//    @Scheduled(cron = "${dailybot.fw-cron}")
     public void fortuneWheel() {
         log.info("Выполняется запланированный запуск fortune wheel сообщения");
 
