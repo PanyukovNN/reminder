@@ -18,6 +18,8 @@ public class DayBotManager {
 
     private static final String DAILY_LINK_LINE = """
             Подключаемся <a href='%s'>по ссылке</a>
+            
+            @bavian98
             """;
 
     private final MessageSender messageSender;
