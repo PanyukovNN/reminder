@@ -37,6 +37,14 @@ public class DayBotProperty {
      * Признак отправки сообщения.
      */
     private boolean sendMessages;
+    /**
+     * Путь до файлов с информацией об уведомлениях
+     */
+    private String notificationConfigPath;
+    /**
+     * Токен github для доступа к репозиторию с конфигурацией.
+     */
+    private String githubProjectConfigsToken;
 
     public void pc() {
         log.info(this.toString());

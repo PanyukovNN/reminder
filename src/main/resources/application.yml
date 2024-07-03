@@ -19,11 +19,12 @@ spring:
           service-url: http://host.docker.internal:${server.port}/${spring.application.name}
 
 dailybot:
-  notification-config-path: "./notification-infos/"
   bot-token: ${TG_BOT_TOKEN} # Токен бота
   bot-name: ${TG_BOT_NAME} # Имя бота
   debug-chat-id: ${TG_DEBUG_GROUP_CHAT_ID} # Идентификатор чата для информирования об исключительных ситуациях
   send-messages: true  # Признак отправки сообщения
+  notification-config-path: "reminder/notification-infos"
+  github-project-configs-token: ${GITHUB_PROJECT_CONFIGS_TOKEN}
 
 management:
   endpoints:

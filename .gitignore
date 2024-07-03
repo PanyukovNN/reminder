@@ -33,3 +33,4 @@ target/
 deploy/configmap.yml
 deploy/config.properties
 /deploy/config.env
+/credentials

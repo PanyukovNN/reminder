@@ -3,24 +3,25 @@ package ru.gazprombank.ssdailybot.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import ru.gazprombank.ssdailybot.dto.GithubFileInfo;
 import ru.gazprombank.ssdailybot.dto.NotificationInfo;
+import ru.gazprombank.ssdailybot.property.DayBotProperty;
 import ru.gazprombank.ssdailybot.service.ReminderManager;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Arrays;
+import java.net.URI;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -28,57 +29,65 @@ import java.util.Optional;
 public class NotificationInfoConfig {
 
     @Autowired
+    private WebClient webClient;
+    @Autowired
     private TaskScheduler executor;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private DayBotProperty dayBotProperty;
     @Autowired
     private ApplicationContext appContext;
     @Autowired
     private ReminderManager reminderManager;
 
-    @Value("${dailybot.notification-config-path}")
-    private String notificationConfigPath;
-
     @EventListener(ApplicationStartedEvent.class)
     public void scheduleNotificationInfos() {
-        File notificationConfigsFolder = new File(notificationConfigPath);
-
-        File[] notificationInfoFiles = Objects.requireNonNull(
-                notificationConfigsFolder.listFiles(),
-                "Не удалось прочитать путь к файлам с напоминаниями: " + notificationConfigsFolder
-        );
-
-        List<NotificationInfo> notificationInfos = Arrays.stream(notificationInfoFiles)
-                .flatMap(file -> readNotificationInfoFromFile(file).stream())
+        downloadNotificationInfosFromGithub()
+                .mapNotNull(rawNotificationInfo -> readNotificationInfo(rawNotificationInfo).orElse(null))
                 .filter(NotificationInfo::isActive)
-                .peek(ni -> log.info("Успешно добавлено напоминание: {}", ni.getName()))
-                .toList();
+                .doOnNext(notificationInfo -> {
+                    log.info("Успешно добавлено напоминание: {}", notificationInfo.getName());
 
-        if (notificationInfos.isEmpty()) {
-            log.error("Не удалось прочитать ни один файл с напоминаниями, работа приложения будет прекращена");
+                    // TODO validate notificationInfos
 
-            int exitCode = SpringApplication.exit(appContext, () -> 0);
-            System.exit(exitCode);
-        }
-
-        // TODO validate notificationInfos
-
-        notificationInfos.forEach(notificationInfo -> executor.schedule(
-                () -> reminderManager.processNotificationInfo(false, false, notificationInfo),
-                new CronTrigger(notificationInfo.getCron())));
+                    executor.schedule(
+                            () -> reminderManager.processNotificationInfo(false, false, notificationInfo),
+                            new CronTrigger(notificationInfo.getCron()));
+                })
+                .subscribe();
     }
 
-    private Optional<NotificationInfo> readNotificationInfoFromFile(File file) {
-        Path path = file.toPath();
-
+    private Optional<NotificationInfo> readNotificationInfo(String rawNotificationInfo) {
         try {
-            String rawNotificationInfo = Files.readString(path);
-
             return Optional.of(objectMapper.readValue(rawNotificationInfo, NotificationInfo.class));
         } catch (IOException e) {
             log.error("Не удалось прочитать файл с информацией об уведомлении: {}", e.getMessage(), e);
 
             return Optional.empty();
         }
+    }
+
+    // TODO добавить логи на загрузку конфигов
+    private Flux<String> downloadNotificationInfosFromGithub() {
+        URI uri = UriComponentsBuilder.fromHttpUrl("https://api.github.com/repos/PanyukovNN/project-configs/contents/" + dayBotProperty.getNotificationConfigPath())
+                .build()
+                .toUri();
+
+        Flux<GithubFileInfo> githubFileInfosFlux = webClient.get()
+                .uri(uri)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + dayBotProperty.getGithubProjectConfigsToken())
+                .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
+                .header("X-GitHub-Api-Version", "2022-11-28")
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<GithubFileInfo>>() {
+                })
+                .flatMapMany(Flux::fromIterable);
+
+        return githubFileInfosFlux
+                .flatMap(githubFileInfo -> webClient.get()
+                        .uri(githubFileInfo.getDownloadUrl())
+                        .retrieve()
+                        .bodyToMono(String.class));
     }
 }
