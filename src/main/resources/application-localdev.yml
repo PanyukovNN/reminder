@@ -1,2 +1,0 @@
-dailybot:
-  check-execution-time: true # Признак проверки точного времени отправки сообщения

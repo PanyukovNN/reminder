@@ -1,6 +1,5 @@
 package ru.gazprombank.ssdailybot.property;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,11 +29,6 @@ public class DayBotProperty {
     @NotEmpty(message = "Не задано имя бота")
     private String botName;
     /**
-     * Идентификатор чата рассылки.
-     */
-    @NotEmpty(message = "Не задан идентификатор чата рассылки")
-    private String chatId;
-    /**
      * Идентификатор чата для информирования об исключительных ситуациях.
      */
     @NotEmpty(message = "Не задан идентификатор чата для информирования об исключительных ситуациях")
@@ -43,16 +37,7 @@ public class DayBotProperty {
      * Признак отправки сообщения.
      */
     private boolean sendMessages;
-    /**
-     * Признак проверки точного времени отправки сообщения.
-     */
-    private boolean checkExecutionTime;
 
-    private String dailyLinkCommon;
-
-    private String cron;
-
-    @PostConstruct
     public void pc() {
         log.info(this.toString());
     }

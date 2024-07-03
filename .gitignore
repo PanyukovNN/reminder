@@ -2,6 +2,7 @@
 /build/
 */out/
 !gradle/wrapper/gradle-wrapper.jar
+/notification-infos
 
 ### STS ###
 .apt_generated

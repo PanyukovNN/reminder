@@ -22,20 +22,30 @@ public class DBotListener {
     public void onStartup() {
         TG_UPDATE_SINK.asFlux()
                 .doOnNext(update -> {
-                    User user = update.getMessage().getFrom();
+                    if (update == null) {
+                        return;
+                    }
+
+                    Message message = update.getMessage() != null
+                            ? update.getMessage()
+                            : update.getChannelPost();
+
+                    if (message == null) {
+                        log.warn("Получено пустое сообщение: {}", update);
+
+                        return;
+                    }
+
+                    User user = message.getFrom();
 
                     String username = Optional.ofNullable(user).map(User::getUserName).orElse("undefined");
                     String firstname = Optional.ofNullable(user).map(User::getFirstName).orElse("undefined");
                     String lastname = Optional.ofNullable(user).map(User::getLastName).orElse("undefined");
 
-                    String messageText = Optional.ofNullable(update)
-                            .map(Update::getMessage)
-                            .map(Message::getText)
+                    String messageText = Optional.ofNullable(message.getText())
                             .orElse("undefined");
 
-                    Long chatId = Optional.ofNullable(update)
-                            .map(Update::getMessage)
-                            .map(Message::getChatId)
+                    Long chatId = Optional.ofNullable(message.getChatId())
                             .orElse(0L);
 
                     log.info("Входящее update сообщение в чате: {}. Текст: {}. От: {}", chatId, messageText, username + " " + firstname + " " + lastname + " ");

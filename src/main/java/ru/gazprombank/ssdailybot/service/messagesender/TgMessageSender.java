@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
-import ru.gazprombank.ssdailybot.exception.DayBotException;
+import ru.gazprombank.ssdailybot.exception.ReminderException;
 import ru.gazprombank.ssdailybot.property.DayBotProperty;
 
 import java.time.Duration;
@@ -43,7 +43,7 @@ public class TgMessageSender implements MessageSender {
                 .bodyToMono(String.class)
                 .timeout(Duration.ofSeconds(TIMEOUT_S))
                 .doOnNext(item -> log.info("Сообщение отправлено в группу {}", chatId))
-                .onErrorMap(WebClientResponseException.class, error -> new DayBotException(String.format("Ошибка при отправке сообщения в группу рассылки. Статус: %s. Тело ответа: %s",
+                .onErrorMap(WebClientResponseException.class, error -> new ReminderException(String.format("Ошибка при отправке сообщения в группу рассылки. Статус: %s. Тело ответа: %s",
                         error.getStatusCode(),
                         error.getResponseBodyAsString())));
     }
@@ -64,7 +64,7 @@ public class TgMessageSender implements MessageSender {
                 .bodyToMono(String.class)
                 .timeout(Duration.ofSeconds(TIMEOUT_S))
                 .doOnNext(item -> log.info("Стикер отправлен в группу {}", chatId))
-                .onErrorMap(WebClientResponseException.class, error -> new DayBotException(String.format("Ошибка при отправке стикера в группу рассылки. Статус: %s. Тело ответа: %s",
+                .onErrorMap(WebClientResponseException.class, error -> new ReminderException(String.format("Ошибка при отправке стикера в группу рассылки. Статус: %s. Тело ответа: %s",
                         error.getStatusCode(),
                         error.getResponseBodyAsString())));
     }

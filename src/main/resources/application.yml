@@ -19,15 +19,11 @@ spring:
           service-url: http://host.docker.internal:${server.port}/${spring.application.name}
 
 dailybot:
+  notification-config-path: "./notification-infos/"
   bot-token: ${TG_BOT_TOKEN} # Токен бота
   bot-name: ${TG_BOT_NAME} # Имя бота
-  chat-id: ${TG_GROUP_CHAT_ID} # Идентификатор чата рассылки
   debug-chat-id: ${TG_DEBUG_GROUP_CHAT_ID} # Идентификатор чата для информирования об исключительных ситуациях
   send-messages: true  # Признак отправки сообщения
-  check-execution-time: true # Признак проверки точного времени отправки сообщения
-  daily-link-common: ${DAILY_LINK_COMMON} # Ссылка на общий дейли
-  daily-cron: ${DAILY_CRON}
-  fw-cron: ${FW_CRON}
 
 management:
   endpoints:
