@@ -1,35 +1,46 @@
-package ru.gazprombank.ssdailybot.config;
+package ru.gazprombank.ssdailybot.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.gazprombank.ssdailybot.dto.GithubFileInfo;
 import ru.gazprombank.ssdailybot.dto.NotificationInfo;
 import ru.gazprombank.ssdailybot.property.DayBotProperty;
-import ru.gazprombank.ssdailybot.service.ReminderManager;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Slf4j
-@Configuration
-public class NotificationInfoConfig {
+@Service
+public class NotificationInfoLoader {
+
+    private static final AtomicReference<List<? extends ScheduledFuture<?>>> scheduledTasks = new AtomicReference<>(new ArrayList<>());
 
     @Autowired
     private WebClient webClient;
+    @Autowired
+    private Validator validator;
     @Autowired
     private TaskScheduler executor;
     @Autowired
@@ -37,25 +48,51 @@ public class NotificationInfoConfig {
     @Autowired
     private DayBotProperty dayBotProperty;
     @Autowired
-    private ApplicationContext appContext;
-    @Autowired
     private ReminderManager reminderManager;
 
     @EventListener(ApplicationStartedEvent.class)
-    public void scheduleNotificationInfos() {
-        downloadNotificationInfosFromGithub()
+    public void loadOnStartup() {
+        loadNotifications()
+                .subscribe();
+    }
+
+    public Mono<Void> loadNotifications() {
+        return downloadNotificationInfosFromGithub()
                 .mapNotNull(rawNotificationInfo -> readNotificationInfo(rawNotificationInfo).orElse(null))
-                .filter(NotificationInfo::isActive)
-                .doOnNext(notificationInfo -> {
+                .doOnNext(notificationInfo -> log.info("Загружено уведомление из репозитория: {}", notificationInfo.getName()))
+                .filter(this::filterNotificationInfo)
+                .map(notificationInfo -> {
                     log.info("Успешно добавлено напоминание: {}", notificationInfo.getName());
 
-                    // TODO validate notificationInfos
-
-                    executor.schedule(
+                    return executor.schedule(
                             () -> reminderManager.processNotificationInfo(false, false, notificationInfo),
                             new CronTrigger(notificationInfo.getCron()));
                 })
-                .subscribe();
+                .collect(Collectors.toList())
+                .doOnNext(list -> {
+                    List<? extends ScheduledFuture<?>> previousScheduledFutures = scheduledTasks.get();
+                    scheduledTasks.set(list);
+                    previousScheduledFutures.forEach(it -> it.cancel(true));
+                })
+                .then();
+    }
+
+    private boolean filterNotificationInfo(NotificationInfo notificationInfo) {
+        Set<ConstraintViolation<NotificationInfo>> constraintViolations = validator.validate(notificationInfo);
+
+        if (!CollectionUtils.isEmpty(constraintViolations)) {
+            constraintViolations.forEach(cv -> log.warn("Ошибка валидации уведомления '{}': {}", notificationInfo.getName(), cv.getMessage()));
+
+            return false;
+        }
+
+        if (!notificationInfo.isActive()) {
+            log.info("Уведомление '{}' неактивно", notificationInfo.getName());
+
+            return false;
+        }
+
+        return true;
     }
 
     private Optional<NotificationInfo> readNotificationInfo(String rawNotificationInfo) {
@@ -68,7 +105,6 @@ public class NotificationInfoConfig {
         }
     }
 
-    // TODO добавить логи на загрузку конфигов
     private Flux<String> downloadNotificationInfosFromGithub() {
         URI uri = UriComponentsBuilder.fromHttpUrl("https://api.github.com/repos/PanyukovNN/project-configs/contents/" + dayBotProperty.getNotificationConfigPath())
                 .build()
@@ -82,6 +118,7 @@ public class NotificationInfoConfig {
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<GithubFileInfo>>() {
                 })
+                .doOnNext(list -> log.info("В репозитории найдено файлов уведомлений: {}", list.size()))
                 .flatMapMany(Flux::fromIterable);
 
         return githubFileInfosFlux

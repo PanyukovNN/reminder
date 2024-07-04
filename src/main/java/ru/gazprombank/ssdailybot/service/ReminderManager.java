@@ -74,7 +74,9 @@ public class ReminderManager {
             messageLines.add(Strings.EMPTY);
         }
 
-        messageLines.add(messagePicker.pickRandomBodyMessage(textMessage.getBodies()));
+        if (!CollectionUtils.isEmpty(textMessage.getBodies())) {
+            messageLines.add(messagePicker.pickRandomBodyMessage(textMessage.getBodies()));
+        }
 
         if (StringUtils.hasText(textMessage.getSuffix())) {
             messageLines.add(Strings.EMPTY);
