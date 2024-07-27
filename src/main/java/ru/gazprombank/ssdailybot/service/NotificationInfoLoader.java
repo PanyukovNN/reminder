@@ -22,7 +22,6 @@ import ru.gazprombank.ssdailybot.dto.NotificationInfo;
 import ru.gazprombank.ssdailybot.property.DayBotProperty;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -106,25 +105,37 @@ public class NotificationInfoLoader {
     }
 
     private Flux<String> downloadNotificationInfosFromGithub() {
-        URI uri = UriComponentsBuilder.fromHttpUrl("https://api.github.com/repos/PanyukovNN/project-configs/contents/" + dayBotProperty.getNotificationConfigPath())
-                .build()
-                .toUri();
+        String uri = UriComponentsBuilder.fromHttpUrl("https://api.github.com/repos/PanyukovNN/project-configs/contents/")
+            .build()
+            .toUri()
+            .toString();
 
-        Flux<GithubFileInfo> githubFileInfosFlux = webClient.get()
-                .uri(uri)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + dayBotProperty.getGithubProjectConfigsToken())
-                .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
-                .header("X-GitHub-Api-Version", "2022-11-28")
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<GithubFileInfo>>() {
-                })
-                .doOnNext(list -> log.info("В репозитории найдено файлов уведомлений: {}", list.size()))
-                .flatMapMany(Flux::fromIterable);
+        Flux<GithubFileInfo> githubFileInfosFlux = fetchFolderFiles(uri + dayBotProperty.getNotificationConfigPath())
+            .flatMap(it -> {
+                if (it.getType().equals("dir")) {
+                    // Рекурсивно извлекаем файлы из папок
+                    return fetchFolderFiles(uri + it.getPath());
+                }
+
+                return Flux.just(it);
+            });
 
         return githubFileInfosFlux
                 .flatMap(githubFileInfo -> webClient.get()
                         .uri(githubFileInfo.getDownloadUrl())
                         .retrieve()
                         .bodyToMono(String.class));
+    }
+
+    private Flux<GithubFileInfo> fetchFolderFiles(String uri) {
+        return webClient.get()
+            .uri(uri)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + dayBotProperty.getGithubProjectConfigsToken())
+            .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
+            .header("X-GitHub-Api-Version", "2022-11-28")
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<List<GithubFileInfo>>() {
+            })
+            .flatMapMany(Flux::fromIterable);
     }
 }

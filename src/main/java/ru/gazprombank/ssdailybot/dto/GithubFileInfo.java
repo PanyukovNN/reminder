@@ -9,4 +9,15 @@ public class GithubFileInfo {
     @JsonProperty("download_url")
     private String downloadUrl;
 
+    /**
+     * Возможные значения:
+     * - dir
+     * - file
+     */
+    private String type;
+
+    /**
+     * Путь к файлу (или папке) внутри репозитория
+     */
+    private String path;
 }
